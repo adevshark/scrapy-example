@@ -9,9 +9,9 @@ cd build
 git clone git@github.com:Danielchernokalov88/isbn_scrapy.git 
 
 # 
-cp -u isbn_scrapy/abe/isbn/settings.prod.py isbn_scrapy/abe/isbn/settings.py 
-rm isbn_scrapy/abe/isbn/settings.prod.py
-rm isbn_scrapy/abe/isbn/settings.dev.py
+cp -i isbn_scrapy/abe/isbn/settings.prod.py isbn_scrapy/abe/isbn/settings.py 
+#rm isbn_scrapy/abe/isbn/settings.prod.py
+#rm isbn_scrapy/abe/isbn/settings.dev.py
 
 # remove deploy script
 rm isbn_scrapy/automation/deploy.sh
@@ -32,5 +32,5 @@ ssh -i "$MY_PEM" centos@34.200.219.71 'tar xzf isbn_scrapy.tgz;source venv/bin/a
 # git archive --format=tar.gz -o ./build/isbn.tar.gz master
 
 
-cd ..
-rm -rf build
+#cd ..
+#rm -rf build
