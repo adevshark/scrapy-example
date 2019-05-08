@@ -32,5 +32,5 @@ ssh -i "$MY_PEM" centos@34.200.219.71 'tar xzf isbn_scrapy.tgz;source venv/bin/a
 # git archive --format=tar.gz -o ./build/isbn.tar.gz master
 
 
-# cd ..
-#rm -rf build
+cd ..
+rm -rf build
