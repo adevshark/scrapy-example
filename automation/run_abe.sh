@@ -10,6 +10,7 @@ nohup scrapy crawl abe  > /dev/null 2>&1 & echo $! > abe.pid
 echo "running abe"
 
 now=$(date +"%Y%m%d")
-filename = "abe_$now.log"
-echo "log file name is $filename"
-tail -f "abe/$filename"
+echo $now
+readonly LOGFILE="abe_$now.log"
+echo "log file name is $LOGFILE"
+tail -f "abe/$LOGFILE"
