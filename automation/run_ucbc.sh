@@ -3,9 +3,10 @@
 cd "$(dirname "$0")"
 cd ../ucbc/
 
-if [ -f "ucbc.pid" ]; then kill -9 `cat ucbc.pid`; fi
+#if [ -f "ucbc.pid" ]; then kill -9 `cat ucbc.pid`; fi
+pkill -f "UCBC"
 
-nohup scrapy crawl UCBC && scrapy crawl UCBC2 > /dev/null 2>&1 & echo $! > ucbc.pid
+nohup sh -c "scrapy crawl UCBC && scrapy crawl UCBC2" > /dev/null 2>&1 & echo $! > ucbc.pid
 
 echo "running ucbc"
 
