@@ -12,4 +12,4 @@ echo "running abe"
 now=$(date +"%Y%m%d")
 filename = "abe_$now.log"
 echo "log file name is $filename"
-tail -f abe/$filename
+tail -f "abe/$filename"
