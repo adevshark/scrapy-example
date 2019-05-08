@@ -118,7 +118,7 @@ class UCBC_spider(BaseSpider):
             item['qty'] = qty
             item['avgPrice'] = self.parse_price_str(avgPrice)
             item['lowestPrice'] = self.parse_price_str(lowestPrice)
-            item['lastUpdated'] = datetime.now()
+            item['lastUpdated'] = datetime.utcnow()
             yield item
 
             sql = "CALL `enternity`.`insertUCBC`(%s, %s, %s, %s, %s, %s, 0, %s)"

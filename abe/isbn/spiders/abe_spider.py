@@ -6,7 +6,7 @@ from .base_spider import BaseSpider
 import logging
 
 class AbeSpider(BaseSpider):
-    name = "abe"
+    name = "ABE"
     log_name = name
 
     utc_now = datetime.utcnow()
