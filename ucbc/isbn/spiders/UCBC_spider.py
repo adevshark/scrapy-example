@@ -54,7 +54,7 @@ class UCBC_spider(BaseSpider):
         with open('curr_timestamp', 'w') as f:
             f.write(self.curr_timestamp.strftime("%Y-%m-%d %H:%M:%S"))
 
-        for isbn in range(100, 102):
+        for isbn in range(100, 999):
             yield self.start_request_with_isbn(isbn, (1000 - isbn))
         
     def start_request_with_isbn(self, isbn, priority):
