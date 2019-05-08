@@ -1,4 +1,6 @@
 #!/bin/sh
+
+cd "$(dirname "$0")"
 cd ..
 
 mkdir -p build
@@ -17,14 +19,16 @@ rm isbn_scrapy/automation/deploy.sh
 # tar
 tar czvf isbn_scrapy.tgz isbn_scrapy
 
-MY_PEM = "/Users/xiong/Documents/projects/scrapping/server_info/xiaogangEC2.pem"
+readonly MY_PEM="/Users/xiong/Documents/projects/scrapping/server_info/xiaogangEC2.pem"
 # deploy
-scp -i $MY_PEM isbn_scrapy.tgz centos@34.200.219.71:~/
+scp -i "$MY_PEM" isbn_scrapy.tgz centos@34.200.219.71:~/
+ssh -i "$MY_PEM" centos@34.200.219.71 'tar xzf isbn_scrapy.tgz;source venv/bin/activate;cd isbn_scrapy;automation/run_abe.sh;'
+
 
 
 # create a tarball of a git repository using git archive
 # git archive --format=tar.gz -o ./build/isbn.tar.gz master
 
 
-# cd ..
-# rm -rf build
+cd ..
+rm -rf build
