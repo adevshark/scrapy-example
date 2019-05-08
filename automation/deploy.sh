@@ -9,7 +9,7 @@ cd build
 git clone git@github.com:Danielchernokalov88/isbn_scrapy.git 
 
 # 
-cp -i isbn_scrapy/abe/isbn/settings.prod.py isbn_scrapy/abe/isbn/settings.py 
+echo yes | cp isbn_scrapy/abe/isbn/settings.prod.py isbn_scrapy/abe/isbn/settings.py 
 #rm isbn_scrapy/abe/isbn/settings.prod.py
 #rm isbn_scrapy/abe/isbn/settings.dev.py
 
