@@ -59,7 +59,7 @@ class AbeSpider(BaseSpider):
         sql = "UPDATE AbeBooksCom_TaskTracking set lastUpdated = utc_timestamp(), itemStatus = %s, lastUpdatedWSID = %s where isbn10 = %s"
         try:
             logging.info("isbn {} status {}".format(isbn, status))
-            self.cursorInsert.execute(sql, (self.lastUpdatedWSID, status, isbn,))
+            self.cursorInsert.execute(sql, (status,self.lastUpdatedWSID, isbn,))
             self.count_proc()
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
@@ -201,6 +201,8 @@ class AbeSpider(BaseSpider):
         shippingExpediateAdditional = response.xpath('//table[@class="data"]//tr[3]/td[3]/text()').extract_first()
         item['shippingExpediateAdditional'] = re.sub(r'[^0-9\.]', "", shippingExpediateAdditional)
         
+        now = datetime.utcnow()
+        item['timestamp'] = now
         yield item
 
         sql = "CALL `insertAbeBooksCom`(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, utc_timestamp())"
