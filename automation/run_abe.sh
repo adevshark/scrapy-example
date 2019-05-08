@@ -13,4 +13,4 @@ now=$(date +"%Y%m%d")
 echo $now
 readonly LOGFILE="abe_$now.log"
 echo "log file name is $LOGFILE"
-tail -f "abe/$LOGFILE"
+tail -f "./$LOGFILE"
