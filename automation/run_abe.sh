@@ -3,7 +3,7 @@
 cd "$(dirname "$0")"
 cd ../abe/
 
-kill -9 `cat abe.pid`
+if [ -f "abe.pid" ]; then kill -9 `cat abe.pid`; fi
 
 nohup scrapy crawl abe  > /dev/null 2>&1 & echo $! > abe.pid
 
