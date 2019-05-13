@@ -5,7 +5,7 @@ cd ../abe/
 
 if [ -f "abe.pid" ]; then kill -9 `cat abe.pid`; fi
 
-nohup scrapy crawl abe  > /dev/null 2>&1 & echo $! > abe.pid
+nohup scrapy crawl ABE  > /dev/null 2>&1 & echo $! > abe.pid
 
 echo "running abe"
 

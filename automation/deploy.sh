@@ -30,7 +30,7 @@ readonly MY_PEM="/Users/xiong/Documents/projects/scrapping/server_info/xiaogangE
 
 # deploy
 scp -i "$MY_PEM" isbn_scrapy.tgz centos@34.200.219.71:~/
-ssh -i "$MY_PEM" centos@34.200.219.71 'tar xzf isbn_scrapy.tgz;source venv/bin/activate;pwd;cd isbn_scrapy;automation/run_ucbc.sh;'
+ssh -i "$MY_PEM" centos@34.200.219.71 'tar xzf isbn_scrapy.tgz;source venv/bin/activate;pwd;cd isbn_scrapy;automation/run_abe.sh;'
 
 
 
