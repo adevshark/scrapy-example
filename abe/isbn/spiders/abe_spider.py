@@ -76,7 +76,6 @@ class AbeSpider(BaseSpider):
                 headers = {'Referer': 'https://www.abebooks.com/?cm_sp=TopNav-_-Results-_-Logo'},
                 errback=self.errback_parse
             )
-            break
     
     def errback_parse(self, failure):
         self.logger.error(repr(failure))
