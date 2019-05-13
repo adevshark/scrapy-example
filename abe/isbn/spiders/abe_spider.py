@@ -89,7 +89,7 @@ class AbeSpider(BaseSpider):
             sql = "UPDATE AbeBooksCom_TaskTracking set lastUpdated = utc_timestamp(), itemStatus = %s, lastUpdatedWSID = %s where isbn10 = %s"
             param = (status, self.lastUpdatedWSID, isbn,)
         else:
-            sql = "UPDATE AbeBooksCom_TaskTracking set lastUpdated = utc_timestamp(), itemStatus = %s,lastBatchCount = %s, lastUpdatedWSID = %s where isbn10 = %s"
+            sql = "UPDATE AbeBooksCom_TaskTracking set lastUpdated = utc_timestamp(), itemStatus = %s,batchCount = %s, lastUpdatedWSID = %s where isbn10 = %s"
             param = (status, currentBatchCount, self.lastUpdatedWSID, isbn,)
         try:
             logging.info("isbn {} , currentBatchCount = {}, status {}".format(isbn,currentBatchCount, status))
