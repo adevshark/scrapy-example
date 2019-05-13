@@ -34,4 +34,7 @@ class AbeBook_Item(scrapy.Item):
     shippingExpediateAdditional = scrapy.Field()
     shippingExpediateMinSpeed = scrapy.Field()
     shippingExpediateMaxSpeed = scrapy.Field()
+    currentBatchCount = scrapy.Field()
+    recordIndex = scrapy.Field()
+    description = scrapy.Field()
     timestamp = scrapy.Field()

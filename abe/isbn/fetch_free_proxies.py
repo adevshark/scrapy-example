@@ -44,7 +44,7 @@ def get_proxyrotator_proxy(count):
 
 def fetch_all(endpage=2, https=False):
     proxies = []
-    #proxies += get_proxies()
+    proxies += get_proxies()
     #proxies += get_proxyrotator_proxies()
     proxies += get_proxyrotator_proxy(count = 10)
     return proxies

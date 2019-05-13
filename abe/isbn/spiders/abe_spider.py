@@ -13,7 +13,31 @@ class AbeSpider(BaseSpider):
 
     custom_settings = {
         'FEED_URI': name + utc_now.strftime('_%Y%m%d.csv'),
-        'FEED_FORMAT': 'csv'
+        'FEED_FORMAT': 'csv',
+        'FEED_EXPORT_FIELDS': [
+            'ISBN10',
+            'itemPrice',
+            'shippingPrice',
+            'itemConditionLabel',
+            'itemConditionCode',
+            'coverLabel',
+            'qtyAvailable',
+            'seller',
+            'sellerLocation',
+            'starRating',
+            'shippingStandardFirst',
+            'shippingStandardAdditional',
+            'shippingStandardMinSpeed',
+            'shippingStandardMaxSpeed',
+            'shippingExpediateFirst',
+            'shippingExpediateAdditional',
+            'shippingExpediateMinSpeed',
+            'shippingExpediateMaxSpeed',
+            'currentBatchCount',
+            'recordIndex',
+            'timestamp',
+            'description'
+        ],
     }
 
     def __init__(self, *args, **kwargs):
@@ -28,15 +52,20 @@ class AbeSpider(BaseSpider):
 #            '0851310419'
         ]
 
-        query = ("SELECT  AbeBooksCom_TaskTracking.isbn10 FROM AbeBooksCom_TaskTracking")
+        query = ("SELECT AbeBooksCom_TaskTracking.isbn10, AbeBooksCom_TaskTracking.batchCount FROM enternity.AbeBooksCom_TaskTracking where itemStatus=200 ORDER BY lastUpdated ASC")
         self.cursor.execute(query)
         #isbns = self.cursor.fetchall()
 
         for isbn_row in self.cursor:
             isbn = isbn_row[0]
+            lastBatchCount = isbn_row[1]
+            currentBatchCount = lastBatchCount+1
             url = 'https://www.abebooks.com/servlet/SearchResults?sts=t&cm_sp=SearchF-_-home-_-Results&sortby=17&an=&tn=&kn=&isbn={}'.format(isbn)
             yield scrapy.Request(url=url, callback=self.parse, 
-                meta = {'isbn': isbn} ,
+                meta = {
+                    'isbn': isbn,
+                    'currentBatchCount': currentBatchCount
+                } ,
                 cookies = {
                     'ab_optim': 'showA',
                     'selectedShippingRate': 'CAN',
@@ -45,27 +74,52 @@ class AbeSpider(BaseSpider):
                     'abe_vc': 17
                 },
                 headers = {'Referer': 'https://www.abebooks.com/?cm_sp=TopNav-_-Results-_-Logo'},
+                errback=self.errback_parse
             )
+            break
+    
+    def errback_parse(self, failure):
+        self.logger.error(repr(failure))
+        request = failure.request
+        isbn = request.meta['isbn']
+        currentBatchCount = request.meta['currentBatchCount']
+        self.update_tasktracking(isbn, currentBatchCount, -1)
 
-    def parse(self, response):
-        condition_labels = ['New', 'Used']
-
-        isbn = response.meta['isbn']
-        book_div_list = response.xpath('//div[contains(@class, "cf result")]')
-
-        status = 200
-        if len(book_div_list) == 0:
-            status = -1
-        sql = "UPDATE AbeBooksCom_TaskTracking set lastUpdated = utc_timestamp(), itemStatus = %s, lastUpdatedWSID = %s where isbn10 = %s"
+    def update_tasktracking(self, isbn, currentBatchCount, status):
+        if currentBatchCount == -1:
+            sql = "UPDATE AbeBooksCom_TaskTracking set lastUpdated = utc_timestamp(), itemStatus = %s, lastUpdatedWSID = %s where isbn10 = %s"
+            param = (status, self.lastUpdatedWSID, isbn,)
+        else:
+            sql = "UPDATE AbeBooksCom_TaskTracking set lastUpdated = utc_timestamp(), itemStatus = %s,lastBatchCount = %s, lastUpdatedWSID = %s where isbn10 = %s"
+            param = (status, currentBatchCount, self.lastUpdatedWSID, isbn,)
         try:
-            logging.info("isbn {} status {}".format(isbn, status))
-            self.cursorInsert.execute(sql, (status,self.lastUpdatedWSID, isbn,))
+            logging.info("isbn {} , currentBatchCount = {}, status {}".format(isbn,currentBatchCount, status))
+            self.cursorInsert.execute(sql, param)
             self.count_proc()
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
             pass
 
+    def parse(self, response):
+        condition_labels = ['New', 'Used']
+
+        isbn = response.meta['isbn']
+        currentBatchCount = response.meta['currentBatchCount']
+        # get search result from book list
+        book_div_list = response.xpath('//div[contains(@class, "cf result")]')
+
+        # status update
+        status = 200
+        if len(book_div_list) == 0:
+            status = -1
+
+        self.update_tasktracking(isbn, currentBatchCount, status)
+
+        
+        # loop every book
+        recordIndex = 0
         for book_div in book_div_list:
+            recordIndex += 1
             result_detail_div = book_div.xpath('.//div[contains(@class, "result-detail")]')
 
             title = result_detail_div.xpath('./h2/a/span/text()').extract_first()
@@ -73,15 +127,14 @@ class AbeSpider(BaseSpider):
 
             itemConditionLabel = ''
             itemConditionCode = 1 # For new
-            coverLabel = ''
+            coverLabelList = []
 
             for every_bsa in bsa:
                 if every_bsa in condition_labels:
                     itemConditionLabel = every_bsa
                     if itemConditionLabel == 'Used':
                         itemConditionCode = 3
-                else:
-                    coverLabel = every_bsa
+                coverLabelList.append(every_bsa)
 
             # if len(bsa) >= 1:
             #     itemConditionLabel = bsa[0]
@@ -116,15 +169,20 @@ class AbeSpider(BaseSpider):
             buylink = buylink_list[1]
             vid_groups = re.match(r'.*vid=(.*?)$', buylink)
 
+            # get book description
+            book_description = book_div.xpath('.//p[contains(@class, "clear-all")]/span/text()').extract_first()
+            # print(book_description)
+
             # itemConditionLabel
-            itemConditionLabel = itemConditionLabel[0:10]
-            coverLabel = coverLabel[0:10]
+            # itemConditionLabel = itemConditionLabel[0:10]
+            coverLabel = ','.join(coverLabelList)
             if vid_groups:
                 vid = vid_groups[1]
                 shipRateUrl = 'https://www.abebooks.com/servlet/ShipRates?vid=' + vid
 
                 item = AbeBook_Item()
                 item['ISBN10'] = isbn
+                item['currentBatchCount'] = currentBatchCount
                 item['itemPrice'] = book_price
                 item['shippingPrice'] = shipping_price
                 item['itemConditionLabel'] = itemConditionLabel
@@ -134,7 +192,11 @@ class AbeSpider(BaseSpider):
                 item['seller'] = seller
                 item['sellerLocation'] = sellerLocation
                 item['starRating'] = rating
+                item['description'] = book_description
+                item['recordIndex'] = recordIndex
                 
+                # scrap shipping price
+                # 
                 yield scrapy.Request(url=shipRateUrl, callback=self.parse_shipping, 
                     meta = {
                         'item': item
@@ -156,7 +218,10 @@ class AbeSpider(BaseSpider):
             rel_url = next_link.xpath('./@href').extract_first()
             url = 'https://www.abebooks.com' + rel_url
             yield scrapy.Request(url=url, callback=self.parse, 
-                meta = {'isbn': isbn} ,
+                meta = {
+                    'isbn': isbn,
+                    'currentBatchCount': currentBatchCount
+                } ,
                 cookies = {
                     'ab_optim': 'showA',
                     'selectedShippingRate': 'CAN',
@@ -165,6 +230,7 @@ class AbeSpider(BaseSpider):
                     'abe_vc': 17
                 },
                 headers = {'Referer': response.request.url},
+                errback=self.errback_parse
             )
         pass
 
@@ -205,12 +271,33 @@ class AbeSpider(BaseSpider):
         item['timestamp'] = now
         yield item
 
-        sql = "CALL `insertAbeBooksCom`(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, utc_timestamp())"
-        try:
-            self.cursorInsert.execute(sql, (item['ISBN10'], item['itemPrice'], item['shippingPrice'], item['itemConditionLabel'], item['itemConditionCode'] , 
+        #sql = "CALL `insertAbeBooksCom`(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, utc_timestamp())"
+        insertCurrentSql = """INSERT INTO AbeBooksCom_Current (isbn10,itemPrice,shippingPrice,itemConditionLabel,itemConditionCode,coverLabel,
+        qtyAvailable,seller,sellerLocation,starRating,shippingStandardFirst,shippingStandardAdditional,shippingStandardMinSpeed,
+        shippingStandardMaxSpeed,shippingExpediateFirst,shippingExpediateAdditional,shippingExpediateMinSpeed,shippingExpediateMaxSpeed,
+        lastUpdatedWSID,batchCount, lastUpdated) 
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, utc_timestamp())
+    ON DUPLICATE KEY UPDATE  isbn10=%s,itemPrice=%s,shippingPrice=%s,itemConditionLabel=%s,itemConditionCode=%s,coverLabel=%s,
+    qtyAvailable=%s,seller=%s,sellerLocation=%s,starRating=%s,shippingStandardFirst=%s,shippingStandardAdditional=%s,shippingStandardMinSpeed=%s,
+    shippingStandardMaxSpeed=%s,shippingExpediateFirst=%s,shippingExpediateAdditional=%s,shippingExpediateMinSpeed=%s,
+    shippingExpediateMaxSpeed=%s,lastUpdatedWSID=%s,batchCount= %s, lastUpdated=utc_timestamp();
+	"""
+        insertHistorianSql = """
+    INSERT INTO AbeBooksCom_Historian (isbn10,itemPrice,shippingPrice,itemConditionLabel,itemConditionCode,coverLabel,
+    qtyAvailable,seller,sellerLocation,starRating,shippingStandardFirst,shippingStandardAdditional,shippingStandardMinSpeed,
+    shippingStandardMaxSpeed,shippingExpediateFirst,shippingExpediateAdditional,shippingExpediateMinSpeed,shippingExpediateMaxSpeed,
+    lastUpdatedWSID,batchCount, lastUpdated, recordIndex) 
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,%s, utc_timestamp(), %s);
+            """
+        insertParamItem = (item['ISBN10'], item['itemPrice'], item['shippingPrice'], item['itemConditionLabel'], item['itemConditionCode'] , 
                 item['coverLabel'], item['qtyAvailable'], item['seller'], item['sellerLocation'], item['starRating'], 
                 item['shippingStandardFirst'], item['shippingStandardAdditional'], item['shippingStandardMinSpeed'], item['shippingExpediateMaxSpeed'], item['shippingExpediateFirst'], 
-                item['shippingExpediateAdditional'], item['shippingExpediateMinSpeed'], item['shippingExpediateMaxSpeed'], self.lastUpdatedWSID))
+                item['shippingExpediateAdditional'], item['shippingExpediateMinSpeed'], item['shippingExpediateMaxSpeed'],  item['currentBatchCount'])
+        try:
+            insertParam = insertParamItem + (self.lastUpdatedWSID,)
+            insertCurrentParam = insertParam * 2
+            self.cursorInsert.execute(insertCurrentSql, insertCurrentParam)
+            self.cursorInsert.execute(insertHistorianSql, insertParam + (item['recordIndex'],))
             self.count_proc()
         except Exception as e:
             logging.error('Error at %s', 'division', exc_info=e)
