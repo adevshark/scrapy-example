@@ -70,7 +70,7 @@ CONCURRENT_REQUESTS_PER_IP = 16
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     'isbn.HttpProxyMiddleware.HttpProxyMiddleware': 543,
-    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 550
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 530
 }
 
 # Enable or disable extensions
@@ -90,12 +90,12 @@ DOWNLOADER_MIDDLEWARES = {
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
 AUTOTHROTTLE_ENABLED = True
 # The initial download delay
-AUTOTHROTTLE_START_DELAY = 1
+AUTOTHROTTLE_START_DELAY = 0
 # The maximum download delay to be set in case of high latencies
 AUTOTHROTTLE_MAX_DELAY = 60
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
-AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
+AUTOTHROTTLE_TARGET_CONCURRENCY = 4.0
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 
@@ -112,4 +112,4 @@ FEED_EXPORTERS = {
     'csv': 'isbn.my_project_csv_item_exporter.MyProjectCsvItemExporter',
 }
 
-RETRY_TIMES = 100
+RETRY_TIMES = 10000

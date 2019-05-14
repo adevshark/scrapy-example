@@ -64,7 +64,8 @@ class AbeSpider(BaseSpider):
             yield scrapy.Request(url=url, callback=self.parse, 
                 meta = {
                     'isbn': isbn,
-                    'currentBatchCount': currentBatchCount
+                    'currentBatchCount': currentBatchCount,
+                    'recordIndex': 0
                 } ,
                 cookies = {
                     'ab_optim': 'showA',
@@ -104,6 +105,7 @@ class AbeSpider(BaseSpider):
 
         isbn = response.meta['isbn']
         currentBatchCount = response.meta['currentBatchCount']
+        recordIndex = response.meta['recordIndex']
         # get search result from book list
         book_div_list = response.xpath('//div[contains(@class, "cf result")]')
 
@@ -116,7 +118,7 @@ class AbeSpider(BaseSpider):
 
         
         # loop every book
-        recordIndex = 0
+        # recordIndex = 0
         for book_div in book_div_list:
             recordIndex += 1
             result_detail_div = book_div.xpath('.//div[contains(@class, "result-detail")]')
@@ -197,6 +199,7 @@ class AbeSpider(BaseSpider):
                 # scrap shipping price
                 # 
                 yield scrapy.Request(url=shipRateUrl, callback=self.parse_shipping, 
+                    dont_filter = True, # force request even though it is duplicated url
                     meta = {
                         'item': item
                     } ,
@@ -219,7 +222,8 @@ class AbeSpider(BaseSpider):
             yield scrapy.Request(url=url, callback=self.parse, 
                 meta = {
                     'isbn': isbn,
-                    'currentBatchCount': currentBatchCount
+                    'currentBatchCount': currentBatchCount,
+                    'recordIndex': recordIndex
                 } ,
                 cookies = {
                     'ab_optim': 'showA',
@@ -295,7 +299,9 @@ class AbeSpider(BaseSpider):
         try:
             insertParam = insertParamItem + (self.lastUpdatedWSID,)
             insertCurrentParam = insertParam * 2
-            self.cursorInsert.execute(insertCurrentSql, insertCurrentParam)
+            
+            if item['recordIndex'] == 1:
+                self.cursorInsert.execute(insertCurrentSql, insertCurrentParam)
             self.cursorInsert.execute(insertHistorianSql, insertParam + (item['recordIndex'],))
             self.count_proc()
         except Exception as e:
