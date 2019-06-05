@@ -22,16 +22,16 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 ROBOTSTXT_OBEY = False
 
 DB_CREDS = {
-    'host':'localhost',
-    'user':'root',
-    'pass':'RjuSk3qY:ql%',
-    'db':'enternity'
+    'host': 'solutus-dev-db.cydjt3gkebsg.us-east-1.rds.amazonaws.com',
+    'user': 'devec2',
+    'pass': '4Tq-%btXgpc)',
+    'db': 'solutus_db_dev'
 }
 
 LAST_UPDATED_WSID = 1
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 16
+CONCURRENT_REQUESTS = 8
 
 # Configure a delay for requests for the same website (default: 0)
 # See https://doc.scrapy.org/en/latest/topics/settings.html#download-delay
@@ -48,47 +48,46 @@ CONCURRENT_REQUESTS_PER_IP = 16
 #TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
+# DEFAULT_REQUEST_HEADERS = {
 #   'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 #   'Accept-Language': 'en',
-#}
+# }
 
 # Enable or disable spider middlewares
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
+# SPIDER_MIDDLEWARES = {
 #    'isbn.HttpProxyMiddleware.HttpProxyMiddleware': 543,
-#}
+# }
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
     'isbn.HttpProxyMiddleware.HttpProxyMiddleware': 543,
-    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 530
 }
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
+# EXTENSIONS = {
 #    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+# }
 
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
+# ITEM_PIPELINES = {
 #    'tutorial.pipelines.TutorialPipeline': 300,
 #    'tutorial.pipelines.CsvPipeline': 500
-#}
+# }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
 AUTOTHROTTLE_ENABLED = True
 # The initial download delay
-AUTOTHROTTLE_START_DELAY = 0
+AUTOTHROTTLE_START_DELAY = 1
 # The maximum download delay to be set in case of high latencies
 AUTOTHROTTLE_MAX_DELAY = 60
 # The average number of requests Scrapy should be sending in parallel to
 # each remote server
-AUTOTHROTTLE_TARGET_CONCURRENCY = 4.0
+AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 # Enable showing throttling stats for every response received:
 #AUTOTHROTTLE_DEBUG = False
 
@@ -104,5 +103,3 @@ DOWNLOAD_TIMEOUT = 10
 FEED_EXPORTERS = {
     'csv': 'isbn.my_project_csv_item_exporter.MyProjectCsvItemExporter',
 }
-
-RETRY_TIMES = 1000

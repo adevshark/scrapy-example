@@ -25,7 +25,7 @@ DB_CREDS = {
     'host':'localhost',
     'user':'root',
     'pass':'root',
-    'db':'enternity'
+    'db':'solutus_db_dev'
 }
 
 #DB_CREDS = {
