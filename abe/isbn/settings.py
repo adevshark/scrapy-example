@@ -22,10 +22,10 @@ USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 ROBOTSTXT_OBEY = False
 
 DB_CREDS = {
-    'host':'localhost',
-    'user':'root',
-    'pass':'root',
-    'db':'solutus_db_dev'
+    'host': 'solutus-dev-db.cydjt3gkebsg.us-east-1.rds.amazonaws.com',
+    'user': 'devec2',
+    'pass': '4Tq-%btXgpc)',
+    'db': 'solutus_db_dev'
 }
 
 LAST_UPDATED_WSID = 1
