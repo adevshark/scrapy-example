@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from .base_spider import BaseSpider
 import logging
-
+import time
 
 class AbeSpider(BaseSpider):
     name = "ABE"
@@ -58,6 +58,7 @@ class AbeSpider(BaseSpider):
             lastBatchCount = isbn_row[1]
             currentBatchCount = lastBatchCount+1
 
+            time.sleep(1)
             # initial request to abebooks.com
             url = 'https://www.abebooks.com/servlet/SearchResults?sts=t&cm_sp=SearchF-_-home-_-Results&sortby=17&an=&tn=&kn=&isbn={}'.format(
                 isbn)
@@ -65,7 +66,7 @@ class AbeSpider(BaseSpider):
                                  meta={
                                      'isbn': isbn,
                                      'currentBatchCount': currentBatchCount,
-                                     'recordIndex': 0
+                                     'recordIndex': 0,
                                  },
                                  cookies={
                                      'ab_optim': 'showA',
@@ -76,7 +77,7 @@ class AbeSpider(BaseSpider):
                                  },
                                  headers={
                                      'Referer': 'https://www.abebooks.com/?cm_sp=TopNav-_-Results-_-Logo'},
-                                 errback=self.errback_parse
+                                errback=self.errback_parse
                                  )
 
     def errback_parse(self, failure):
@@ -217,7 +218,8 @@ class AbeSpider(BaseSpider):
                 yield scrapy.Request(url=shipRateUrl, callback=self.parse_shipping,
                                      dont_filter=True,  # force request even though it is duplicated url
                                      meta={
-                                         'item': item
+                                         'item': item,
+                                         'proxy_index': response.request.meta['proxy_index'] # reuse same proxy for shipping
                                      },
                                      cookies={
                                          'ab_optim': 'showA',
